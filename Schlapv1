@@ -86,7 +86,7 @@ local mainTab = Window:CreateTab({
 })
 
 -- Auto Slap
-local autoSlapToggle = mainTab:CreateToggle({
+local autoSlapToggle = mainTab:Toggle({
     Title = "Auto Slap",
     Description = "Automatically slaps nearby players",
     Default = false,
@@ -101,7 +101,7 @@ local autoSlapToggle = mainTab:CreateToggle({
 })
 
 -- Auto Slap Aura (Not Recommended)
-local autoSlapAuraToggle = mainTab:CreateToggle({
+local autoSlapAuraToggle = mainTab:Toggle({
     Title = "Auto Slap Aura (Not Recommended)",
     Description = "Teleports to players and slaps them",
     Default = false,
@@ -117,7 +117,7 @@ local autoSlapAuraToggle = mainTab:CreateToggle({
 })
 
 -- AntiVoid Toggle
-local antiVoidToggle = mainTab:CreateToggle({
+local antiVoidToggle = mainTab:Toggle({
     Title = "Antivoid",
     Description = "Prevents falling into the void",
     Default = false,
@@ -162,7 +162,7 @@ local antiVoidToggle = mainTab:CreateToggle({
 })
 
 -- AntiRagdoll Toggle
-local antiRagdollToggle = mainTab:CreateToggle({
+local antiRagdollToggle = mainTab:Toggle({
     Title = "AntiRagdoll",
     Description = "Prevents ragdoll physics",
     Default = false,
@@ -177,7 +177,7 @@ local antiRagdollToggle = mainTab:CreateToggle({
 })
 
 -- === VISUAL TAB ===
-local visualTab = Window:CreateTab({
+local visualTab = Window:Tab({
     Title = "Visual",
     Icon = "rbxassetid://4483345998"
 })
@@ -247,7 +247,7 @@ local function removeAllESP(espType)
 end
 
 -- Players ESP Toggle
-local playersESPToggle = visualTab:CreateToggle({
+local playersESPToggle = visualTab:Toggle({
     Title = "Players ESP (Blue)",
     Description = "Shows ESP for all players",
     Default = false,
@@ -270,7 +270,7 @@ local playersESPToggle = visualTab:CreateToggle({
 })
 
 -- Users ESP Toggle (NPCs/Bots)
-local usersESPToggle = visualTab:CreateToggle({
+local usersESPToggle = visualTab:Toggle({
     Title = "Users ESP (Red)",
     Description = "Shows ESP for NPCs/Bots",
     Default = false,
@@ -289,13 +289,13 @@ local usersESPToggle = visualTab:CreateToggle({
 })
 
 -- === MISC TAB ===
-local miscTab = Window:CreateTab({
+local miscTab = Window:Tab({
     Title = "Misc",
     Icon = "rbxassetid://4483345998"
 })
 
 -- WalkSpeed Slider
-local walkSpeedSlider = miscTab:CreateSlider({
+local walkSpeedSlider = miscTab:Slider({
     Title = "WalkSpeed",
     Description = "Adjust your walking speed",
     Default = 16,
@@ -310,7 +310,7 @@ local walkSpeedSlider = miscTab:CreateSlider({
 })
 
 -- JumpPower Slider
-local jumpPowerSlider = miscTab:CreateSlider({
+local jumpPowerSlider = miscTab:Slider({
     Title = "JumpPower",
     Description = "Adjust your jump power",
     Default = 50,
@@ -325,7 +325,7 @@ local jumpPowerSlider = miscTab:CreateSlider({
 })
 
 -- Rejoin Button
-local rejoinButton = miscTab:CreateButton({
+local rejoinButton = miscTab:Button({
     Title = "Rejoin",
     Description = "Rejoin the current server",
     Callback = function()
@@ -335,7 +335,7 @@ local rejoinButton = miscTab:CreateButton({
 })
 
 -- Server Hop Button
-local serverHopButton = miscTab:CreateButton({
+local serverHopButton = miscTab:Button({
     Title = "Server Hop",
     Description = "Join a different server",
     Callback = function()
@@ -363,7 +363,7 @@ local serverHopButton = miscTab:CreateButton({
 })
 
 -- Spin Bot Toggle
-local spinBotToggle = miscTab:CreateToggle({
+local spinBotToggle = miscTab:Toggle({
     Title = "Spin Bot",
     Description = "Makes your character spin continuously",
     Default = false,
