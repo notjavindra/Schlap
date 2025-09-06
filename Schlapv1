@@ -651,6 +651,11 @@ LocalPlayer.CharacterAdded:Connect(function(newCharacter)
         end
         Humanoid.PlatformStand = false
     end
+    -- Reapply Invisible Mode if enabled
+    if InvisibleModeEnabled then
+        task.wait(1) -- Wait for character to fully spawn
+        enableInvisibleMode()
+    end
 end)
 
 -- Initialize OrionLib
