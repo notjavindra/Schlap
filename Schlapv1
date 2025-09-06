@@ -18,22 +18,10 @@ local AutoSlapEnabled = false
 local SpinBotEnabled = false
 local AntiVoidEnabled = false
 local AntiVoidPart = nil
-local SlapSpeed = 0.2 -- Delay between slap attempts to prevent glitching
+local SlapSpeed = 0.3 -- Increased delay to prevent glitching
 local LastSlapTime = 0 -- Debounce for slap activation
 local LastTeleportTime = 0 -- Debounce for AntiVoid teleport
 local TeleportDebounce = 1 -- Seconds between teleports
-
--- Function to find a safe teleport position
-local function findSafeTeleportPosition()
-    -- Try to find a SpawnLocation
-    local spawnPoint = Workspace:FindFirstChildWhichIsA("SpawnLocation")
-    if spawnPoint then
-        return spawnPoint.Position + Vector3.new(0, 5, 0)
-    end
-    
-    -- Fallback to a fixed safe position (adjust based on game)
-    return Vector3.new(0, 100, 0) -- Default safe position above origin
-end
 
 -- Create Window with OrionLib
 local Window = OrionLib:MakeWindow({
@@ -51,7 +39,7 @@ local mainTab = Window:MakeTab({
     PremiumOnly = false
 })
 
--- Auto Slap (Fixed to use "Basic" tool reliably)
+-- Auto Slap (Refined to prevent glitching)
 mainTab:AddToggle({
     Name = "Auto Slap",
     Default = false,
@@ -75,7 +63,7 @@ mainTab:AddToggle({
     end
 })
 
--- AntiVoid Toggle (Improved with lower part and fixed teleport)
+-- AntiVoid Toggle (Updated with fixed teleport CFrame and lower part)
 mainTab:AddToggle({
     Name = "Antivoid",
     Default = false,
@@ -86,7 +74,7 @@ mainTab:AddToggle({
             if not AntiVoidPart then
                 AntiVoidPart = Instance.new("Part")
                 AntiVoidPart.Size = Vector3.new(5000, 1, 5000) -- Large area to cover void
-                AntiVoidPart.Position = Vector3.new(0, -100, 0) -- Lowered further into void
+                AntiVoidPart.Position = Vector3.new(0, -200, 0) -- Lowered further into void
                 AntiVoidPart.Anchored = true
                 AntiVoidPart.Transparency = 1
                 AntiVoidPart.CanCollide = true
@@ -100,8 +88,7 @@ mainTab:AddToggle({
                             local currentTime = tick()
                             if currentTime - LastTeleportTime >= TeleportDebounce then
                                 LastTeleportTime = currentTime
-                                local safePos = findSafeTeleportPosition()
-                                char.HumanoidRootPart.CFrame = CFrame.new(safePos)
+                                char.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(-21.19, -49.709, 331.93), Vector3.new(0, 0, 0))
                                 OrionLib:MakeNotification({
                                     Name = "AntiVoid",
                                     Content = "Teleported to safe position!",
@@ -269,7 +256,7 @@ RunService.RenderStepped:Connect(function()
         Humanoid.WalkSpeed = WalkSpeedValue
         Humanoid.JumpPower = JumpPowerValue
     end
-    -- Auto Slap logic (Fixed to use "Basic" tool with debounce)
+    -- Auto Slap logic (Refined to prevent glitching)
     if AutoSlapEnabled then
         local currentTime = tick()
         if currentTime - LastSlapTime >= SlapSpeed then
@@ -279,10 +266,10 @@ RunService.RenderStepped:Connect(function()
                     local distance = (Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
                     if distance <= 10 then
                         local tool = LocalPlayer.Backpack:FindFirstChild("Basic") or Character:FindFirstChild("Basic")
-                        if tool and Humanoid and Humanoid.Health > 0 then
+                        if tool and Humanoid and Humanoid.Health > 0 and Humanoid:GetState() ~= Enum.HumanoidStateType.Dead then
                             if tool.Parent ~= Character then
                                 Humanoid:EquipTool(tool)
-                                task.wait(0.2) -- Increased delay for reliable equipping
+                                task.wait(0.3) -- Increased delay for reliable equipping
                             end
                             if tool:IsA("Tool") and tool.Parent == Character then
                                 local success, err = pcall(function()
@@ -300,7 +287,7 @@ RunService.RenderStepped:Connect(function()
                         else
                             OrionLib:MakeNotification({
                                 Name = "Tool Not Found",
-                                Content = "Basic tool not found in Backpack or Character.",
+                                Content = "Basic tool not found or player not ready.",
                                 Image = "rbxassetid://4483345998",
                                 Time = 3
                             })
