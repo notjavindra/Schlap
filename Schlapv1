@@ -15,13 +15,16 @@ local Workspace = game:GetService("Workspace")
 local WalkSpeedValue, JumpPowerValue = 16, 50
 local SpeedEnabled = false
 local AutoSlapEnabled = false
+local AutoSlapAuraEnabled = false
 local SpinBotEnabled = false
 local AntiVoidEnabled = false
 local AntiRagdollEnabled = false
 local AntiVoidPart = nil
 local SlapSpeed = 0.3 -- Delay between slap attempts
+local TeleportDelay = 0.5 -- Delay after teleport to settle
 local LastSlapTime = 0 -- Debounce for slap activation
 local LastTeleportTime = 0 -- Debounce for AntiVoid teleport
+local LastAuraActionTime = 0 -- Debounce for Auto Slap Aura
 local TeleportDebounce = 1 -- Seconds between teleports
 
 -- Create Window with OrionLib
@@ -57,6 +60,30 @@ mainTab:AddToggle({
             OrionLib:MakeNotification({
                 Name = "Auto Slap",
                 Content = "Auto Slap disabled",
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
+        end
+    end
+})
+
+-- Auto Slap Aura (Not Recommended)
+mainTab:AddToggle({
+    Name = "Auto Slap Aura (Not Recommended)",
+    Default = false,
+    Callback = function(state)
+        AutoSlapAuraEnabled = state
+        if state then
+            OrionLib:MakeNotification({
+                Name = "Auto Slap Aura",
+                Content = "Auto Slap Aura enabled (Not Recommended)",
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
+        else
+            OrionLib:MakeNotification({
+                Name = "Auto Slap Aura",
+                Content = "Auto Slap Aura disabled",
                 Image = "rbxassetid://4483345998",
                 Time = 3
             })
@@ -323,6 +350,51 @@ RunService.RenderStepped:Connect(function()
             end
         end
     end
+    -- Auto Slap Aura logic
+    if AutoSlapAuraEnabled and Character and Character:FindFirstChild("HumanoidRootPart") and Humanoid and Humanoid.Health > 0 then
+        local currentTime = tick()
+        if currentTime - LastAuraActionTime >= (SlapSpeed + TeleportDelay) then
+            LastAuraActionTime = currentTime
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local distance = (Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                    if distance <= 50 then -- Limit teleport range to avoid excessive movement
+                        -- Teleport to target
+                        Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0) -- Slightly above target
+                        task.wait(TeleportDelay) -- Wait for teleport to settle
+                        local tool = LocalPlayer.Backpack:FindFirstChild("Basic") or Character:FindFirstChild("Basic")
+                        if tool and Humanoid and Humanoid:GetState() ~= Enum.HumanoidStateType.Dead then
+                            if tool.Parent ~= Character then
+                                Humanoid:EquipTool(tool)
+                                task.wait(0.3)
+                            end
+                            if tool:IsA("Tool") and tool.Parent == Character then
+                                local success, err = pcall(function()
+                                    tool:Activate()
+                                end)
+                                if not success then
+                                    OrionLib:MakeNotification({
+                                        Name = "Tool Activation Failed",
+                                        Content = "Error: " .. tostring(err),
+                                        Image = "rbxassetid://4483345998",
+                                        Time = 3
+                                    })
+                                end
+                            end
+                        else
+                            OrionLib:MakeNotification({
+                                Name = "Tool Not Found",
+                                Content "Basic tool not found or player not ready.",
+                                Image = "rbxassetid://4483345998",
+                                Time = 3
+                            })
+                        end
+                        break -- Move to next player after one slap
+                    end
+                end
+            end
+        end
+    end
     -- Spin Bot logic
     if SpinBotEnabled and Character:FindFirstChild("HumanoidRootPart") then
         Character.HumanoidRootPart.CFrame = Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(15), 0)
@@ -337,22 +409,4 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- Handle Character Respawn
-LocalPlayer.CharacterAdded:Connect(function(newCharacter)
-    Character = newCharacter
-    Humanoid = newCharacter:WaitForChild("Humanoid")
-    -- Reapply WalkSpeed/JumpPower if enabled
-    if SpeedEnabled then
-        Humanoid.WalkSpeed = WalkSpeedValue
-        Humanoid.JumpPower = JumpPowerValue
-    end
-    -- Reapply AntiRagdoll if enabled
-    if AntiRagdollEnabled then
-        if Humanoid:GetState() == Enum.HumanoidStateType.Physics then
-            Humanoid:ChangeState(Enum.HumanoidStateType.Running)
-        end
-        Humanoid.PlatformStand = false
-    end
-end)
-
--- Initialize OrionLib
-OrionLib:Init()
+LocalPlayer.Character
