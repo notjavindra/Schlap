@@ -1,4 +1,4 @@
--- v1 -- Load WindUI
+-- Load WindUI
 local Version = "1.6.31"
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. Version .. "/main.lua"))()
 
@@ -13,9 +13,9 @@ local Backpack = LocalPlayer:WaitForChild("Backpack")
 
 -- Variables
 local WalkSpeedValue, JumpPowerValue = 16, 50
-local SpeedEnabled = false
 local AutoSlapEnabled = false
 local SpinBotEnabled = false
+local SpeedEnabled = false
 
 -- Create Window
 local Window = WindUI:CreateWindow({
@@ -35,87 +35,60 @@ local Window = WindUI:CreateWindow({
 	SideBarWidth = 170
 })
 
--- ========================
--- Main Tab
--- ========================
-local MainTab = Window:CreateTab("Main")
+-- === MAIN TAB ===
+local mainTab = Window:Tab({
+	Title = "Main",
+	Icon = "hand"
+})
 
--- Auto Slap Toggle
-MainTab:CreateToggle({
-	Name = "Auto Slap",
-	Flag = "AutoSlapToggle",
-	Value = false,
-	Callback = function(value)
-		AutoSlapEnabled = value
+mainTab:Toggle({
+	Title = "Auto Slap",
+	Default = false,
+	Callback = function(state)
+		AutoSlapEnabled = state
 	end
 })
 
--- Auto Slap Logic
-RunService.Heartbeat:Connect(function()
-	if AutoSlapEnabled then
-		for _, player in pairs(Players:GetPlayers()) do
-			if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-				local distance = (Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
-				if distance <= 10 then -- Adjust range
-					-- Pick a random tool
-					local tool = Backpack:GetChildren()[math.random(1, #Backpack:GetChildren())]
-					if tool and tool:IsA("Tool") then
-						tool.Parent = Character
-						-- Trigger tool (simulate slap)
-						tool:Activate()
-						tool.Parent = Backpack
-					end
-				end
-			end
-		end
-	end
-end)
+-- === MISC TAB ===
+local miscTab = Window:Tab({
+	Title = "Misc",
+	Icon = "settings"
+})
 
--- ========================
--- Misc Tab
--- ========================
-local MiscTab = Window:CreateTab("Misc")
-
--- Rejoin Button
-MiscTab:CreateButton({
-	Name = "Rejoin",
+miscTab:Button({
+	Title = "Rejoin",
 	Callback = function()
 		game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
 	end
 })
 
--- WalkSpeed Slider
-MiscTab:CreateSlider({
-	Name = "WalkSpeed",
+miscTab:Slider({
+	Title = "WalkSpeed",
+	Default = WalkSpeedValue,
 	Min = 16,
 	Max = 500,
-	Value = WalkSpeedValue,
-	Flag = "WalkSpeedSlider",
 	Callback = function(value)
 		WalkSpeedValue = value
-		Humanoid.WalkSpeed = value
+		if Humanoid then Humanoid.WalkSpeed = value end
 	end
 })
 
--- JumpPower Slider
-MiscTab:CreateSlider({
-	Name = "JumpPower",
+miscTab:Slider({
+	Title = "JumpPower",
+	Default = JumpPowerValue,
 	Min = 50,
 	Max = 500,
-	Value = JumpPowerValue,
-	Flag = "JumpPowerSlider",
 	Callback = function(value)
 		JumpPowerValue = value
-		Humanoid.JumpPower = value
+		if Humanoid then Humanoid.JumpPower = value end
 	end
 })
 
--- Server Hop Button
-MiscTab:CreateButton({
-	Name = "Server Hop",
+miscTab:Button({
+	Title = "Server Hop",
 	Callback = function()
-		local TeleportService = game:GetService("TeleportService")
 		local HttpService = game:GetService("HttpService")
+		local TeleportService = game:GetService("TeleportService")
 		local PlaceId = game.PlaceId
 		local Servers = {}
 		local Success, Response = pcall(function()
@@ -135,21 +108,41 @@ MiscTab:CreateButton({
 	end
 })
 
--- Spin Bot Toggle
-MiscTab:CreateToggle({
-	Name = "Spin Bot",
-	Flag = "SpinBotToggle",
-	Value = false,
-	Callback = function(value)
-		SpinBotEnabled = value
+miscTab:Toggle({
+	Title = "Spin Bot",
+	Default = false,
+	Callback = function(state)
+		SpinBotEnabled = state
 	end
 })
 
--- Spin Bot Logic
-RunService.Heartbeat:Connect(function()
-	if SpinBotEnabled then
-		if Character:FindFirstChild("HumanoidRootPart") then
-			Character.HumanoidRootPart.CFrame = Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(15), 0)
+-- === RUN SERVICE UPDATES ===
+RunService.RenderStepped:Connect(function()
+	-- Auto Slap logic
+	if AutoSlapEnabled then
+		for _, player in pairs(Players:GetPlayers()) do
+			if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+				local distance = (Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+				if distance <= 10 then
+					local tool = Backpack:GetChildren()[math.random(1, #Backpack:GetChildren())]
+					if tool and tool:IsA("Tool") then
+						tool.Parent = Character
+						tool:Activate()
+						tool.Parent = Backpack
+					end
+				end
+			end
 		end
+	end
+
+	-- Spin Bot logic
+	if SpinBotEnabled and Character:FindFirstChild("HumanoidRootPart") then
+		Character.HumanoidRootPart.CFrame = Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(15), 0)
+	end
+
+	-- WalkSpeed/JumpPower
+	if SpeedEnabled and Humanoid then
+		Humanoid.WalkSpeed = WalkSpeedValue
+		Humanoid.JumpPower = JumpPowerValue
 	end
 end)
