@@ -17,8 +17,9 @@ local SpeedEnabled = false
 local AutoSlapEnabled = false
 local SpinBotEnabled = false
 local AntiVoidEnabled = false
+local AntiRagdollEnabled = false
 local AntiVoidPart = nil
-local SlapSpeed = 0.3 -- Increased delay to prevent glitching
+local SlapSpeed = 0.3 -- Delay between slap attempts
 local LastSlapTime = 0 -- Debounce for slap activation
 local LastTeleportTime = 0 -- Debounce for AntiVoid teleport
 local TeleportDebounce = 1 -- Seconds between teleports
@@ -39,7 +40,7 @@ local mainTab = Window:MakeTab({
     PremiumOnly = false
 })
 
--- Auto Slap (Refined to prevent glitching)
+-- Auto Slap
 mainTab:AddToggle({
     Name = "Auto Slap",
     Default = false,
@@ -63,7 +64,7 @@ mainTab:AddToggle({
     end
 })
 
--- AntiVoid Toggle (Updated with fixed teleport CFrame and lower part)
+-- AntiVoid Toggle
 mainTab:AddToggle({
     Name = "Antivoid",
     Default = false,
@@ -73,8 +74,8 @@ mainTab:AddToggle({
             -- Create AntiVoid Part
             if not AntiVoidPart then
                 AntiVoidPart = Instance.new("Part")
-                AntiVoidPart.Size = Vector3.new(5000, 1, 5000) -- Large area to cover void
-                AntiVoidPart.Position = Vector3.new(0, -200, 0) -- Lowered further into void
+                AntiVoidPart.Size = Vector3.new(5000, 1, 5000)
+                AntiVoidPart.Position = Vector3.new(0, -200, 0)
                 AntiVoidPart.Anchored = true
                 AntiVoidPart.Transparency = 1
                 AntiVoidPart.CanCollide = true
@@ -118,6 +119,30 @@ mainTab:AddToggle({
                     Time = 3
                 })
             end
+        end
+    end
+})
+
+-- AntiRagdoll Toggle
+mainTab:AddToggle({
+    Name = "AntiRagdoll",
+    Default = false,
+    Callback = function(state)
+        AntiRagdollEnabled = state
+        if state then
+            OrionLib:MakeNotification({
+                Name = "AntiRagdoll",
+                Content = "AntiRagdoll enabled",
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
+        else
+            OrionLib:MakeNotification({
+                Name = "AntiRagdoll",
+                Content = "AntiRagdoll disabled",
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
         end
     end
 })
@@ -256,7 +281,7 @@ RunService.RenderStepped:Connect(function()
         Humanoid.WalkSpeed = WalkSpeedValue
         Humanoid.JumpPower = JumpPowerValue
     end
-    -- Auto Slap logic (Refined to prevent glitching)
+    -- Auto Slap logic
     if AutoSlapEnabled then
         local currentTime = tick()
         if currentTime - LastSlapTime >= SlapSpeed then
@@ -269,7 +294,7 @@ RunService.RenderStepped:Connect(function()
                         if tool and Humanoid and Humanoid.Health > 0 and Humanoid:GetState() ~= Enum.HumanoidStateType.Dead then
                             if tool.Parent ~= Character then
                                 Humanoid:EquipTool(tool)
-                                task.wait(0.3) -- Increased delay for reliable equipping
+                                task.wait(0.3)
                             end
                             if tool:IsA("Tool") and tool.Parent == Character then
                                 local success, err = pcall(function()
@@ -292,7 +317,7 @@ RunService.RenderStepped:Connect(function()
                                 Time = 3
                             })
                         end
-                        break -- Exit loop after attempting to slap one target
+                        break
                     end
                 end
             end
@@ -301,6 +326,13 @@ RunService.RenderStepped:Connect(function()
     -- Spin Bot logic
     if SpinBotEnabled and Character:FindFirstChild("HumanoidRootPart") then
         Character.HumanoidRootPart.CFrame = Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(15), 0)
+    end
+    -- AntiRagdoll logic
+    if AntiRagdollEnabled and Humanoid then
+        if Humanoid:GetState() == Enum.HumanoidStateType.Physics then
+            Humanoid:ChangeState(Enum.HumanoidStateType.Running)
+        end
+        Humanoid.PlatformStand = false
     end
 end)
 
@@ -312,6 +344,13 @@ LocalPlayer.CharacterAdded:Connect(function(newCharacter)
     if SpeedEnabled then
         Humanoid.WalkSpeed = WalkSpeedValue
         Humanoid.JumpPower = JumpPowerValue
+    end
+    -- Reapply AntiRagdoll if enabled
+    if AntiRagdollEnabled then
+        if Humanoid:GetState() == Enum.HumanoidStateType.Physics then
+            Humanoid:ChangeState(Enum.HumanoidStateType.Running)
+        end
+        Humanoid.PlatformStand = false
     end
 end)
 
