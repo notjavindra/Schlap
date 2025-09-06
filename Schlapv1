@@ -4,6 +4,8 @@ local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/ion
 -- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
@@ -16,6 +18,42 @@ local AutoSlapEnabled = false
 local SpinBotEnabled = false
 local AntiVoidEnabled = false
 local AntiVoidPart = nil
+
+-- Function to find a safe teleport position (e.g., player's base or spawn)
+local function findSafeTeleportPosition()
+    -- Attempt to find player's base (similar to the second script's findBaseTextLabel)
+    local playerName = LocalPlayer.Name
+    local targetText = playerName .. "'s Base"
+    
+    local function searchForTextLabel(parent)
+        for _, descendant in pairs(parent:GetDescendants()) do
+            if descendant:IsA("TextLabel") and descendant.Text == targetText then
+                return descendant
+            end
+        end
+        return nil
+    end
+    
+    local textLabel = searchForTextLabel(Workspace)
+    if textLabel then
+        local basePart = textLabel.Parent.Parent.Parent
+        if basePart:IsA("BasePart") then
+            return basePart.Position + Vector3.new(0, 5, 0)
+        elseif basePart:IsA("Model") then
+            local primaryPart = basePart.PrimaryPart or basePart:GetPivot()
+            return primaryPart.Position + Vector3.new(0, 5, 0)
+        end
+    end
+    
+    -- Fallback to a default safe position or spawn point
+    local spawnPoints = Workspace:FindFirstChild("SpawnLocation") or Workspace:FindFirstChildWhichIsA("SpawnLocation")
+    if spawnPoints then
+        return spawnPoints.Position + Vector3.new(0, 5, 0)
+    end
+    
+    -- Default fallback position
+    return Vector3.new(0, 100, 0) -- Adjust based on game map if needed
+end
 
 -- Create Window with OrionLib
 local Window = OrionLib:MakeWindow({
@@ -33,16 +71,31 @@ local mainTab = Window:MakeTab({
     PremiumOnly = false
 })
 
--- Auto Slap
+-- Auto Slap (Modified to use only "Basic" tool)
 mainTab:AddToggle({
     Name = "Auto Slap",
     Default = false,
     Callback = function(state)
         AutoSlapEnabled = state
+        if state then
+            OrionLib:MakeNotification({
+                Name = "Auto Slap",
+                Content = "Auto Slap enabled (using Basic tool)",
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
+        else
+            OrionLib:MakeNotification({
+                Name = "Auto Slap",
+                Content = "Auto Slap disabled",
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
+        end
     end
 })
 
--- AntiVoid Toggle
+-- AntiVoid Toggle (Improved)
 mainTab:AddToggle({
     Name = "Antivoid",
     Default = false,
@@ -52,27 +105,47 @@ mainTab:AddToggle({
             -- Create AntiVoid Part
             if not AntiVoidPart then
                 AntiVoidPart = Instance.new("Part")
-                AntiVoidPart.Size = Vector3.new(2048, 1, 1567.88)
+                AntiVoidPart.Size = Vector3.new(5000, 1, 5000) -- Increased size to cover larger area
+                AntiVoidPart.Position = Vector3.new(0, -50, 0) -- Lowered to ensure it catches falls (adjust based on game)
                 AntiVoidPart.Anchored = true
                 AntiVoidPart.Transparency = 1
-                AntiVoidPart.Position = Vector3.new(-38.563, 45.713, 0)
+                AntiVoidPart.CanCollide = true
                 AntiVoidPart.Parent = Workspace
                 -- Touch event to teleport player
                 AntiVoidPart.Touched:Connect(function(hit)
                     local player = Players:GetPlayerFromCharacter(hit.Parent)
-                    if player then
+                    if player and player == LocalPlayer then
                         local char = player.Character
                         if char and char:FindFirstChild("HumanoidRootPart") then
-                            char.HumanoidRootPart.CFrame = CFrame.new(-12.149, -39.871, 319.452)
+                            local safePos = findSafeTeleportPosition()
+                            char.HumanoidRootPart.CFrame = CFrame.new(safePos)
+                            OrionLib:MakeNotification({
+                                Name = "AntiVoid",
+                                Content = "Teleported to safe position!",
+                                Image = "rbxassetid://4483345998",
+                                Time = 3
+                            })
                         end
                     end
                 end)
+                OrionLib:MakeNotification({
+                    Name = "AntiVoid",
+                    Content = "AntiVoid enabled",
+                    Image = "rbxassetid://4483345998",
+                    Time = 3
+                })
             end
         else
             -- Remove AntiVoid Part
             if AntiVoidPart then
                 AntiVoidPart:Destroy()
                 AntiVoidPart = nil
+                OrionLib:MakeNotification({
+                    Name = "AntiVoid",
+                    Content = "AntiVoid disabled",
+                    Image = "rbxassetid://4483345998",
+                    Time = 3
+                })
             end
         end
     end
@@ -95,6 +168,12 @@ miscTab:AddTextbox({
         if num then
             WalkSpeedValue = num
             SpeedEnabled = true
+            OrionLib:MakeNotification({
+                Name = "WalkSpeed",
+                Content = "WalkSpeed set to " .. num,
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
         end
     end
 })
@@ -109,6 +188,12 @@ miscTab:AddTextbox({
         if num then
             JumpPowerValue = num
             SpeedEnabled = true
+            OrionLib:MakeNotification({
+                Name = "JumpPower",
+                Content = "JumpPower set to " .. num,
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
         end
     end
 })
@@ -117,7 +202,13 @@ miscTab:AddTextbox({
 miscTab:AddButton({
     Name = "Rejoin",
     Callback = function()
-        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+        OrionLib:MakeNotification({
+            Name = "Rejoin",
+            Content = "Attempting to rejoin the server...",
+            Image = "rbxassetid://4483345998",
+            Time = 3
+        })
     end
 })
 
@@ -125,12 +216,9 @@ miscTab:AddButton({
 miscTab:AddButton({
     Name = "Server Hop",
     Callback = function()
-        local HttpService = game:GetService("HttpService")
-        local TeleportService = game:GetService("TeleportService")
-        local PlaceId = game.PlaceId
         local Servers = {}
         local Success, Response = pcall(function()
-            return game:HttpGet("https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Asc&limit=100")
+            return game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")
         end)
         if Success then
             local Data = HttpService:JSONDecode(Response)
@@ -140,8 +228,28 @@ miscTab:AddButton({
                 end
             end
             if #Servers > 0 then
-                TeleportService:TeleportToPlaceInstance(PlaceId, Servers[math.random(1, #Servers)], LocalPlayer)
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, Servers[math.random(1, #Servers)], LocalPlayer)
+                OrionLib:MakeNotification({
+                    Name = "Server Hop",
+                    Content = "Hopping to a new server...",
+                    Image = "rbxassetid://4483345998",
+                    Time = 3
+                })
+            else
+                OrionLib:MakeNotification({
+                    Name = "Server Hop Failed",
+                    Content = "No available servers found.",
+                    Image = "rbxassetid://4483345998",
+                    Time = 3
+                })
             end
+        else
+            OrionLib:MakeNotification({
+                Name = "Server Hop Failed",
+                Content = "Failed to fetch server list.",
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
         end
     end
 })
@@ -152,6 +260,21 @@ miscTab:AddToggle({
     Default = false,
     Callback = function(state)
         SpinBotEnabled = state
+        if state then
+            OrionLib:MakeNotification({
+                Name = "Spin Bot",
+                Content = "Spin Bot enabled",
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
+        else
+            OrionLib:MakeNotification({
+                Name = "Spin Bot",
+                Content = "Spin Bot disabled",
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
+        end
     end
 })
 
@@ -162,18 +285,40 @@ RunService.RenderStepped:Connect(function()
         Humanoid.WalkSpeed = WalkSpeedValue
         Humanoid.JumpPower = JumpPowerValue
     end
-    -- Auto Slap logic
+    -- Auto Slap logic (Modified to use only "Basic" tool)
     if AutoSlapEnabled then
         for _, player in pairs(Players:GetPlayers()) do
             if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                 local distance = (Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
                 if distance <= 10 then
-                    local tool = LocalPlayer.Backpack:GetChildren()[math.random(1, #LocalPlayer.Backpack:GetChildren())]
-                    if tool and tool:IsA("Tool") then
-                        tool.Parent = Character
-                        tool:Activate()
-                        tool.Parent = LocalPlayer.Backpack
+                    local tool = LocalPlayer.Backpack:FindFirstChild("Basic") or Character:FindFirstChild("Basic")
+                    if tool then
+                        if tool.Parent ~= Character then
+                            Humanoid:EquipTool(tool)
+                            task.wait(0.1) -- Wait for tool to equip
+                        end
+                        if tool:IsA("Tool") and tool.Parent == Character then
+                            local success, err = pcall(function()
+                                tool:Activate()
+                            end)
+                            if not success then
+                                OrionLib:MakeNotification({
+                                    Name = "Tool Activation Failed",
+                                    Content = "Error: " .. tostring(err),
+                                    Image = "rbxassetid://4483345998",
+                                    Time = 3
+                                })
+                            end
+                        end
+                    else
+                        OrionLib:MakeNotification({
+                            Name = "Tool Not Found",
+                            Content = "Basic tool not found in Backpack or Character.",
+                            Image = "rbxassetid://4483345998",
+                            Time = 3
+                        })
                     end
+                    break -- Exit loop after attempting to slap one target
                 end
             end
         end
@@ -181,6 +326,17 @@ RunService.RenderStepped:Connect(function()
     -- Spin Bot logic
     if SpinBotEnabled and Character:FindFirstChild("HumanoidRootPart") then
         Character.HumanoidRootPart.CFrame = Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(15), 0)
+    end
+end)
+
+-- Handle Character Respawn
+LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+    Character = newCharacter
+    Humanoid = newCharacter:WaitForChild("Humanoid")
+    -- Reapply WalkSpeed/JumpPower if enabled
+    if SpeedEnabled then
+        Humanoid.WalkSpeed = WalkSpeedValue
+        Humanoid.JumpPower = JumpPowerValue
     end
 end)
 
