@@ -311,6 +311,32 @@ RunService.RenderStepped:Connect(function()
         Humanoid.JumpPower = JumpPowerValue
     end
     
+    -- Function to find any available slap tool
+    local function findSlapTool()
+        for _, toolName in pairs(SlapTools) do
+            local tool = LocalPlayer.Backpack:FindFirstChild(toolName) or Character:FindFirstChild(toolName)
+            if tool then
+                return tool, toolName
+            end
+        end
+        return nil, nil
+    end
+    
+    -- Function to show tool warning
+    local function showToolWarning()
+        local currentTime = tick()
+        if currentTime - LastToolWarningTime >= ToolWarningCooldown then
+            LastToolWarningTime = currentTime
+            local toolList = table.concat(SlapTools, ", ")
+            OrionLib:MakeNotification({
+                Name = "⚠️ No Slap Tool Found",
+                Content = "Please equip one of these tools: " .. toolList,
+                Image = "rbxassetid://4483345998",
+                Time = 6
+            })
+        end
+    end
+    
     -- Auto Slap logic (normal)
     if AutoSlapEnabled and not AutoSlapAuraEnabled then
         local currentTime = tick()
@@ -320,7 +346,7 @@ RunService.RenderStepped:Connect(function()
                 if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and Character and Character:FindFirstChild("HumanoidRootPart") then
                     local distance = (Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
                     if distance <= 10 then
-                        local tool = LocalPlayer.Backpack:FindFirstChild("Basic") or Character:FindFirstChild("Basic")
+                        local tool, toolName = findSlapTool()
                         if tool and Humanoid and Humanoid.Health > 0 and Humanoid:GetState() ~= Enum.HumanoidStateType.Dead then
                             if tool.Parent ~= Character then
                                 Humanoid:EquipTool(tool)
@@ -333,19 +359,14 @@ RunService.RenderStepped:Connect(function()
                                 if not success then
                                     OrionLib:MakeNotification({
                                         Name = "Tool Activation Failed",
-                                        Content = "Error: " .. tostring(err),
+                                        Content = "Error with " .. toolName .. ": " .. tostring(err),
                                         Image = "rbxassetid://4483345998",
                                         Time = 3
                                     })
                                 end
                             end
                         else
-                            OrionLib:MakeNotification({
-                                Name = "Tool Not Found",
-                                Content = "Basic tool not found or player not ready.",
-                                Image = "rbxassetid://4483345998",
-                                Time = 3
-                            })
+                            showToolWarning()
                         end
                         break
                     end
@@ -379,8 +400,8 @@ RunService.RenderStepped:Connect(function()
                     local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
                     Character.HumanoidRootPart.CFrame = CFrame.new(targetPosition + Vector3.new(2, 0, 0))
                     
-                    -- Try to slap
-                    local tool = LocalPlayer.Backpack:FindFirstChild("Basic") or Character:FindFirstChild("Basic")
+                    -- Try to slap with any available tool
+                    local tool, toolName = findSlapTool()
                     if tool and Humanoid and Humanoid.Health > 0 then
                         if tool.Parent ~= Character then
                             Humanoid:EquipTool(tool)
@@ -393,12 +414,14 @@ RunService.RenderStepped:Connect(function()
                             if success then
                                 OrionLib:MakeNotification({
                                     Name = "Aura Target",
-                                    Content = "Slapping " .. targetPlayer.Name,
+                                    Content = "Slapping " .. targetPlayer.Name .. " with " .. toolName,
                                     Image = "rbxassetid://4483345998",
                                     Time = 1
                                 })
                             end
                         end
+                    else
+                        showToolWarning()
                     end
                     
                     -- Move to next target
