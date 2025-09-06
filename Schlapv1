@@ -48,7 +48,7 @@ local function showNotification(title, content, duration)
 end
 
 -- === MAIN TAB ===
-local mainTab = Window:CreateTab({Title = "Main", Icon = "rbxassetid://4483345998"})
+local mainTab = Window:Tab({Title = "Main", Icon = "rbxassetid://4483345998"})
 
 -- Auto Slap
 mainTab:Toggle({
