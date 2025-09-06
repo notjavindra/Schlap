@@ -15,6 +15,7 @@ local Workspace = game:GetService("Workspace")
 local WalkSpeedValue, JumpPowerValue = 16, 50
 local SpeedEnabled = false
 local AutoSlapEnabled = false
+local AutoSlapAuraEnabled = false
 local SpinBotEnabled = false
 local AntiVoidEnabled = false
 local AntiRagdollEnabled = false
@@ -23,6 +24,9 @@ local SlapSpeed = 0.3 -- Delay between slap attempts
 local LastSlapTime = 0 -- Debounce for slap activation
 local LastTeleportTime = 0 -- Debounce for AntiVoid teleport
 local TeleportDebounce = 1 -- Seconds between teleports
+local AuraTargetIndex = 1 -- Current target index for aura
+local LastAuraTime = 0 -- Debounce for aura switching
+local AuraSwitchDelay = 2 -- Seconds before switching targets
 
 -- Create Window with OrionLib
 local Window = OrionLib:MakeWindow({
@@ -57,6 +61,31 @@ mainTab:AddToggle({
             OrionLib:MakeNotification({
                 Name = "Auto Slap",
                 Content = "Auto Slap disabled",
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
+        end
+    end
+})
+
+-- Auto Slap Aura (Not Recommended)
+mainTab:AddToggle({
+    Name = "Auto Slap Aura (Not Recommended)",
+    Default = false,
+    Callback = function(state)
+        AutoSlapAuraEnabled = state
+        if state then
+            AuraTargetIndex = 1
+            OrionLib:MakeNotification({
+                Name = "Auto Slap Aura",
+                Content = "⚠️ AURA ENABLED - Will teleport to players and slap them!",
+                Image = "rbxassetid://4483345998",
+                Time = 5
+            })
+        else
+            OrionLib:MakeNotification({
+                Name = "Auto Slap Aura",
+                Content = "Auto Slap Aura disabled",
                 Image = "rbxassetid://4483345998",
                 Time = 3
             })
@@ -281,8 +310,9 @@ RunService.RenderStepped:Connect(function()
         Humanoid.WalkSpeed = WalkSpeedValue
         Humanoid.JumpPower = JumpPowerValue
     end
-    -- Auto Slap logic
-    if AutoSlapEnabled then
+    
+    -- Auto Slap logic (normal)
+    if AutoSlapEnabled and not AutoSlapAuraEnabled then
         local currentTime = tick()
         if currentTime - LastSlapTime >= SlapSpeed then
             LastSlapTime = currentTime
@@ -323,10 +353,66 @@ RunService.RenderStepped:Connect(function()
             end
         end
     end
+    
+    -- Auto Slap Aura logic (teleports to players)
+    if AutoSlapAuraEnabled and Character and Character:FindFirstChild("HumanoidRootPart") then
+        local currentTime = tick()
+        if currentTime - LastAuraTime >= AuraSwitchDelay then
+            LastAuraTime = currentTime
+            
+            local players = {}
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    table.insert(players, player)
+                end
+            end
+            
+            if #players > 0 then
+                -- Cycle through players
+                if AuraTargetIndex > #players then
+                    AuraTargetIndex = 1
+                end
+                
+                local targetPlayer = players[AuraTargetIndex]
+                if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    -- Teleport to target player
+                    local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+                    Character.HumanoidRootPart.CFrame = CFrame.new(targetPosition + Vector3.new(2, 0, 0))
+                    
+                    -- Try to slap
+                    local tool = LocalPlayer.Backpack:FindFirstChild("Basic") or Character:FindFirstChild("Basic")
+                    if tool and Humanoid and Humanoid.Health > 0 then
+                        if tool.Parent ~= Character then
+                            Humanoid:EquipTool(tool)
+                            task.wait(0.1)
+                        end
+                        if tool:IsA("Tool") and tool.Parent == Character then
+                            local success, err = pcall(function()
+                                tool:Activate()
+                            end)
+                            if success then
+                                OrionLib:MakeNotification({
+                                    Name = "Aura Target",
+                                    Content = "Slapping " .. targetPlayer.Name,
+                                    Image = "rbxassetid://4483345998",
+                                    Time = 1
+                                })
+                            end
+                        end
+                    end
+                    
+                    -- Move to next target
+                    AuraTargetIndex = AuraTargetIndex + 1
+                end
+            end
+        end
+    end
+    
     -- Spin Bot logic
     if SpinBotEnabled and Character:FindFirstChild("HumanoidRootPart") then
         Character.HumanoidRootPart.CFrame = Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(15), 0)
     end
+    
     -- AntiRagdoll logic
     if AntiRagdollEnabled and Humanoid then
         if Humanoid:GetState() == Enum.HumanoidStateType.Physics then
