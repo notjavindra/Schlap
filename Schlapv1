@@ -1,5 +1,6 @@
--- Load OrionLib
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/ionlyusegithubformcmods/1-Line-Scripts/main/Mobile%20Friendly%20Orion')))()
+-- Load WindUI
+local Version = "1.6.31"
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. Version .. "/main.lua"))()
 
 -- Services
 local Players = game:GetService("Players")
@@ -24,255 +25,134 @@ local LastSlapTime = 0 -- Debounce for slap activation
 local LastTeleportTime = 0 -- Debounce for AntiVoid teleport
 local TeleportDebounce = 1 -- Seconds between teleports
 
--- Create Window with OrionLib
-local Window = OrionLib:MakeWindow({
-    Name = "Schlap | Merqury Hub",
-    HidePremium = false,
-    SaveConfig = true,
-    ConfigFolder = "SchlapConfig",
-    IntroText = "Schlap"
-})
+-- Create Window with WindUI
+local Window = WindUI:New("Schlap | Merqury Hub")
 
 -- === MAIN TAB ===
-local mainTab = Window:MakeTab({
-    Name = "Main",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
+local mainTab = Window:Tab("Main")
 
 -- Auto Slap
-mainTab:AddToggle({
-    Name = "Auto Slap",
-    Default = false,
-    Callback = function(state)
-        AutoSlapEnabled = state
-        if state then
-            OrionLib:MakeNotification({
-                Name = "Auto Slap",
-                Content = "Auto Slap enabled (using Basic tool)",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
-        else
-            OrionLib:MakeNotification({
-                Name = "Auto Slap",
-                Content = "Auto Slap disabled",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
-        end
+mainTab:Toggle("Auto Slap", false, function(state)
+    AutoSlapEnabled = state
+    if state then
+        WindUI:Notify("Auto Slap", "Auto Slap enabled (using Basic tool)", 3)
+    else
+        WindUI:Notify("Auto Slap", "Auto Slap disabled", 3)
     end
-})
+end)
 
 -- AntiVoid Toggle
-mainTab:AddToggle({
-    Name = "Antivoid",
-    Default = false,
-    Callback = function(state)
-        AntiVoidEnabled = state
-        if state then
-            -- Create AntiVoid Part
-            if not AntiVoidPart then
-                AntiVoidPart = Instance.new("Part")
-                AntiVoidPart.Size = Vector3.new(5000, 1, 5000)
-                AntiVoidPart.Position = Vector3.new(0, -200, 0)
-                AntiVoidPart.Anchored = true
-                AntiVoidPart.Transparency = 1
-                AntiVoidPart.CanCollide = true
-                AntiVoidPart.Parent = Workspace
-                -- Touch event to teleport player
-                AntiVoidPart.Touched:Connect(function(hit)
-                    local player = Players:GetPlayerFromCharacter(hit.Parent)
-                    if player and player == LocalPlayer then
-                        local char = player.Character
-                        if char and char:FindFirstChild("HumanoidRootPart") then
-                            local currentTime = tick()
-                            if currentTime - LastTeleportTime >= TeleportDebounce then
-                                LastTeleportTime = currentTime
-                                char.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(-21.19, -49.709, 331.93), Vector3.new(0, 0, 0))
-                                OrionLib:MakeNotification({
-                                    Name = "AntiVoid",
-                                    Content = "Teleported to safe position!",
-                                    Image = "rbxassetid://4483345998",
-                                    Time = 3
-                                })
-                            end
+mainTab:Toggle("Antivoid", false, function(state)
+    AntiVoidEnabled = state
+    if state then
+        -- Create AntiVoid Part
+        if not AntiVoidPart then
+            AntiVoidPart = Instance.new("Part")
+            AntiVoidPart.Size = Vector3.new(5000, 1, 5000)
+            AntiVoidPart.Position = Vector3.new(0, -200, 0)
+            AntiVoidPart.Anchored = true
+            AntiVoidPart.Transparency = 1
+            AntiVoidPart.CanCollide = true
+            AntiVoidPart.Parent = Workspace
+            -- Touch event to teleport player
+            AntiVoidPart.Touched:Connect(function(hit)
+                local player = Players:GetPlayerFromCharacter(hit.Parent)
+                if player and player == LocalPlayer then
+                    local char = player.Character
+                    if char and char:FindFirstChild("HumanoidRootPart") then
+                        local currentTime = tick()
+                        if currentTime - LastTeleportTime >= TeleportDebounce then
+                            LastTeleportTime = currentTime
+                            char.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(-21.19, -49.709, 331.93), Vector3.new(0, 0, 0))
+                            WindUI:Notify("AntiVoid", "Teleported to safe position!", 3)
                         end
                     end
-                end)
-                OrionLib:MakeNotification({
-                    Name = "AntiVoid",
-                    Content = "AntiVoid enabled",
-                    Image = "rbxassetid://4483345998",
-                    Time = 3
-                })
-            end
-        else
-            -- Remove AntiVoid Part
-            if AntiVoidPart then
-                AntiVoidPart:Destroy()
-                AntiVoidPart = nil
-                OrionLib:MakeNotification({
-                    Name = "AntiVoid",
-                    Content = "AntiVoid disabled",
-                    Image = "rbxassetid://4483345998",
-                    Time = 3
-                })
-            end
+                end
+            end)
+            WindUI:Notify("AntiVoid", "AntiVoid enabled", 3)
+        end
+    else
+        -- Remove AntiVoid Part
+        if AntiVoidPart then
+            AntiVoidPart:Destroy()
+            AntiVoidPart = nil
+            WindUI:Notify("AntiVoid", "AntiVoid disabled", 3)
         end
     end
-})
+end)
 
 -- AntiRagdoll Toggle
-mainTab:AddToggle({
-    Name = "AntiRagdoll",
-    Default = false,
-    Callback = function(state)
-        AntiRagdollEnabled = state
-        if state then
-            OrionLib:MakeNotification({
-                Name = "AntiRagdoll",
-                Content = "AntiRagdoll enabled",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
-        else
-            OrionLib:MakeNotification({
-                Name = "AntiRagdoll",
-                Content = "AntiRagdoll disabled",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
-        end
+mainTab:Toggle("AntiRagdoll", false, function(state)
+    AntiRagdollEnabled = state
+    if state then
+        WindUI:Notify("AntiRagdoll", "AntiRagdoll enabled", 3)
+    else
+        WindUI:Notify("AntiRagdoll", "AntiRagdoll disabled", 3)
     end
-})
+end)
 
 -- === MISC TAB ===
-local miscTab = Window:MakeTab({
-    Name = "Misc",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
+local miscTab = Window:Tab("Misc")
 
 -- WalkSpeed TextBox
-miscTab:AddTextbox({
-    Name = "WalkSpeed",
-    Default = "16",
-    TextDisappear = true,
-    Callback = function(value)
-        local num = tonumber(value)
-        if num then
-            WalkSpeedValue = num
-            SpeedEnabled = true
-            OrionLib:MakeNotification({
-                Name = "WalkSpeed",
-                Content = "WalkSpeed set to " .. num,
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
-        end
+miscTab:Textbox("WalkSpeed", "16", function(value)
+    local num = tonumber(value)
+    if num then
+        WalkSpeedValue = num
+        SpeedEnabled = true
+        WindUI:Notify("WalkSpeed", "WalkSpeed set to " .. num, 3)
     end
-})
+end)
 
 -- JumpPower TextBox
-miscTab:AddTextbox({
-    Name = "JumpPower",
-    Default = "50",
-    TextDisappear = true,
-    Callback = function(value)
-        local num = tonumber(value)
-        if num then
-            JumpPowerValue = num
-            SpeedEnabled = true
-            OrionLib:MakeNotification({
-                Name = "JumpPower",
-                Content = "JumpPower set to " .. num,
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
-        end
+miscTab:Textbox("JumpPower", "50", function(value)
+    local num = tonumber(value)
+    if num then
+        JumpPowerValue = num
+        SpeedEnabled = true
+        WindUI:Notify("JumpPower", "JumpPower set to " .. num, 3)
     end
-})
+end)
 
 -- Rejoin Button
-miscTab:AddButton({
-    Name = "Rejoin",
-    Callback = function()
-        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
-        OrionLib:MakeNotification({
-            Name = "Rejoin",
-            Content = "Attempting to rejoin the server...",
-            Image = "rbxassetid://4483345998",
-            Time = 3
-        })
-    end
-})
+miscTab:Button("Rejoin", function()
+    TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+    WindUI:Notify("Rejoin", "Attempting to rejoin the server...", 3)
+end)
 
 -- Server Hop Button
-miscTab:AddButton({
-    Name = "Server Hop",
-    Callback = function()
-        local Servers = {}
-        local Success, Response = pcall(function()
-            return game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")
-        end)
-        if Success then
-            local Data = HttpService:JSONDecode(Response)
-            for _, server in pairs(Data.data) do
-                if server.playing < server.maxPlayers and server.id ~= game.JobId then
-                    table.insert(Servers, server.id)
-                end
+miscTab:Button("Server Hop", function()
+    local Servers = {}
+    local Success, Response = pcall(function()
+        return game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")
+    end)
+    if Success then
+        local Data = HttpService:JSONDecode(Response)
+        for _, server in pairs(Data.data) do
+            if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                table.insert(Servers, server.id)
             end
-            if #Servers > 0 then
-                TeleportService:TeleportToPlaceInstance(game.PlaceId, Servers[math.random(1, #Servers)], LocalPlayer)
-                OrionLib:MakeNotification({
-                    Name = "Server Hop",
-                    Content = "Hopping to a new server...",
-                    Image = "rbxassetid://4483345998",
-                    Time = 3
-                })
-            else
-                OrionLib:MakeNotification({
-                    Name = "Server Hop Failed",
-                    Content = "No available servers found.",
-                    Image = "rbxassetid://4483345998",
-                    Time = 3
-                })
-            end
-        else
-            OrionLib:MakeNotification({
-                Name = "Server Hop Failed",
-                Content = "Failed to fetch server list.",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
         end
+        if #Servers > 0 then
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, Servers[math.random(1, #Servers)], LocalPlayer)
+            WindUI:Notify("Server Hop", "Hopping to a new server...", 3)
+        else
+            WindUI:Notify("Server Hop Failed", "No available servers found.", 3)
+        end
+    else
+        WindUI:Notify("Server Hop Failed", "Failed to fetch server list.", 3)
     end
-})
+end)
 
 -- Spin Bot Toggle
-miscTab:AddToggle({
-    Name = "Spin Bot",
-    Default = false,
-    Callback = function(state)
-        SpinBotEnabled = state
-        if state then
-            OrionLib:MakeNotification({
-                Name = "Spin Bot",
-                Content = "Spin Bot enabled",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
-        else
-            OrionLib:MakeNotification({
-                Name = "Spin Bot",
-                Content = "Spin Bot disabled",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
-        end
+miscTab:Toggle("Spin Bot", false, function(state)
+    SpinBotEnabled = state
+    if state then
+        WindUI:Notify("Spin Bot", "Spin Bot enabled", 3)
+    else
+        WindUI:Notify("Spin Bot", "Spin Bot disabled", 3)
     end
-})
+end)
 
 -- === RUN SERVICE ===
 RunService.RenderStepped:Connect(function()
@@ -301,21 +181,11 @@ RunService.RenderStepped:Connect(function()
                                     tool:Activate()
                                 end)
                                 if not success then
-                                    OrionLib:MakeNotification({
-                                        Name = "Tool Activation Failed",
-                                        Content = "Error: " .. tostring(err),
-                                        Image = "rbxassetid://4483345998",
-                                        Time = 3
-                                    })
+                                    WindUI:Notify("Tool Activation Failed", "Error: " .. tostring(err), 3)
                                 end
                             end
                         else
-                            OrionLib:MakeNotification({
-                                Name = "Tool Not Found",
-                                Content = "Basic tool not found or player not ready.",
-                                Image = "rbxassetid://4483345998",
-                                Time = 3
-                            })
+                            WindUI:Notify("Tool Not Found", "Basic tool not found or player not ready.", 3)
                         end
                         break
                     end
@@ -353,6 +223,3 @@ LocalPlayer.CharacterAdded:Connect(function(newCharacter)
         Humanoid.PlatformStand = false
     end
 end)
-
--- Initialize OrionLib
-OrionLib:Init()
