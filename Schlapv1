@@ -94,8 +94,8 @@ local miscTab = Window:Tab({
 	Icon = "settings"
 })
 
--- WalkSpeed Textbox
-miscTab:Textbox({
+-- WalkSpeed TextBox
+miscTab:TextBox({
 	Title = "WalkSpeed",
 	Placeholder = "16",
 	Callback = function(value)
@@ -107,8 +107,8 @@ miscTab:Textbox({
 	end
 })
 
--- JumpPower Textbox
-miscTab:Textbox({
+-- JumpPower TextBox
+miscTab:TextBox({
 	Title = "JumpPower",
 	Placeholder = "50",
 	Callback = function(value)
