@@ -1,5 +1,6 @@
--- Load OrionLib
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/ionlyusegithubformcmods/1-Line-Scripts/main/Mobile%20Friendly%20Orion')))()
+-- Load WindUI
+local Version = "1.6.31"
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. Version .. "/main.lua"))()
 
 -- Services
 local Players = game:GetService("Players")
@@ -51,74 +52,74 @@ local SchlapTools = {
     "Midas"
 }
 
--- Create Window with OrionLib
-local Window = OrionLib:MakeWindow({
-    Name = "Schlap | Merqury Hub",
-    HidePremium = false,
-    SaveConfig = true,
-    ConfigFolder = "SchlapConfig",
-    IntroText = "Schlap"
+-- Create Window with WindUI
+local Window = WindUI:CreateWindow({
+    Title = "Schlap | Merqury Hub",
+    Icon = "rbxassetid://4483345998",
+    Author = "Merqury Hub",
+    Folder = "SchlapConfig",
+    Size = UDim2.fromOffset(580, 460),
+    KeySystem = {
+        Key = "",
+        Note = "The key is nothing",
+        URL = "https://example.com",
+        SaveKey = true
+    },
+    Transparent = true,
+    Theme = "Dark",
+    SideBarWidth = 170
 })
 
+-- Notification helper function
+local function showNotification(title, content, duration)
+    WindUI:Notify({
+        Title = title,
+        Content = content,
+        Duration = duration or 3
+    })
+end
+
 -- === MAIN TAB ===
-local mainTab = Window:MakeTab({
-    Name = "Main",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
+local mainTab = Window:CreateTab({
+    Title = "Main",
+    Icon = "rbxassetid://4483345998"
 })
 
 -- Auto Slap
-mainTab:AddToggle({
-    Name = "Auto Slap",
+local autoSlapToggle = mainTab:CreateToggle({
+    Title = "Auto Slap",
+    Description = "Automatically slaps nearby players",
     Default = false,
     Callback = function(state)
         AutoSlapEnabled = state
         if state then
-            OrionLib:MakeNotification({
-                Name = "Auto Slap",
-                Content = "Auto Slap enabled (supports all Schlap tools)",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
+            showNotification("Auto Slap", "Auto Slap enabled (supports all Schlap tools)")
         else
-            OrionLib:MakeNotification({
-                Name = "Auto Slap",
-                Content = "Auto Slap disabled",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
+            showNotification("Auto Slap", "Auto Slap disabled")
         end
     end
 })
 
 -- Auto Slap Aura (Not Recommended)
-mainTab:AddToggle({
-    Name = "Auto Slap Aura (Not Recommended)",
+local autoSlapAuraToggle = mainTab:CreateToggle({
+    Title = "Auto Slap Aura (Not Recommended)",
+    Description = "Teleports to players and slaps them",
     Default = false,
     Callback = function(state)
         AutoSlapAuraEnabled = state
         if state then
             AuraTargetIndex = 1
-            OrionLib:MakeNotification({
-                Name = "Auto Slap Aura",
-                Content = "⚠️ AURA ENABLED - Will teleport to players and slap them!",
-                Image = "rbxassetid://4483345998",
-                Time = 5
-            })
+            showNotification("Auto Slap Aura", "⚠️ AURA ENABLED - Will teleport to players and slap them!", 5)
         else
-            OrionLib:MakeNotification({
-                Name = "Auto Slap Aura",
-                Content = "Auto Slap Aura disabled",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
+            showNotification("Auto Slap Aura", "Auto Slap Aura disabled")
         end
     end
 })
 
 -- AntiVoid Toggle
-mainTab:AddToggle({
-    Name = "Antivoid",
+local antiVoidToggle = mainTab:CreateToggle({
+    Title = "Antivoid",
+    Description = "Prevents falling into the void",
     Default = false,
     Callback = function(state)
         AntiVoidEnabled = state
@@ -142,68 +143,43 @@ mainTab:AddToggle({
                             if currentTime - LastTeleportTime >= TeleportDebounce then
                                 LastTeleportTime = currentTime
                                 char.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(-21.19, -49.709, 331.93), Vector3.new(0, 0, 0))
-                                OrionLib:MakeNotification({
-                                    Name = "AntiVoid",
-                                    Content = "Teleported to safe position!",
-                                    Image = "rbxassetid://4483345998",
-                                    Time = 3
-                                })
+                                showNotification("AntiVoid", "Teleported to safe position!")
                             end
                         end
                     end
                 end)
-                OrionLib:MakeNotification({
-                    Name = "AntiVoid",
-                    Content = "AntiVoid enabled",
-                    Image = "rbxassetid://4483345998",
-                    Time = 3
-                })
+                showNotification("AntiVoid", "AntiVoid enabled")
             end
         else
             -- Remove AntiVoid Part
             if AntiVoidPart then
                 AntiVoidPart:Destroy()
                 AntiVoidPart = nil
-                OrionLib:MakeNotification({
-                    Name = "AntiVoid",
-                    Content = "AntiVoid disabled",
-                    Image = "rbxassetid://4483345998",
-                    Time = 3
-                })
+                showNotification("AntiVoid", "AntiVoid disabled")
             end
         end
     end
 })
 
 -- AntiRagdoll Toggle
-mainTab:AddToggle({
-    Name = "AntiRagdoll",
+local antiRagdollToggle = mainTab:CreateToggle({
+    Title = "AntiRagdoll",
+    Description = "Prevents ragdoll physics",
     Default = false,
     Callback = function(state)
         AntiRagdollEnabled = state
         if state then
-            OrionLib:MakeNotification({
-                Name = "AntiRagdoll",
-                Content = "AntiRagdoll enabled",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
+            showNotification("AntiRagdoll", "AntiRagdoll enabled")
         else
-            OrionLib:MakeNotification({
-                Name = "AntiRagdoll",
-                Content = "AntiRagdoll disabled",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
+            showNotification("AntiRagdoll", "AntiRagdoll disabled")
         end
     end
 })
 
 -- === VISUAL TAB ===
-local visualTab = Window:MakeTab({
-    Name = "Visual",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
+local visualTab = Window:CreateTab({
+    Title = "Visual",
+    Icon = "rbxassetid://4483345998"
 })
 
 -- ESP Functions
@@ -271,8 +247,9 @@ local function removeAllESP(espType)
 end
 
 -- Players ESP Toggle
-visualTab:AddToggle({
-    Name = "Players ESP (Blue)",
+local playersESPToggle = visualTab:CreateToggle({
+    Title = "Players ESP (Blue)",
+    Description = "Shows ESP for all players",
     Default = false,
     Callback = function(state)
         PlayersESPEnabled = state
@@ -283,117 +260,84 @@ visualTab:AddToggle({
                     createPlayerESP(player)
                 end
             end
-            OrionLib:MakeNotification({
-                Name = "Players ESP",
-                Content = "Players ESP enabled (Blue)",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
+            showNotification("Players ESP", "Players ESP enabled (Blue)")
         else
             -- Disable Players ESP
             removeAllESP("Players")
-            OrionLib:MakeNotification({
-                Name = "Players ESP",
-                Content = "Players ESP disabled",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
+            showNotification("Players ESP", "Players ESP disabled")
         end
     end
 })
 
 -- Users ESP Toggle (NPCs/Bots)
-visualTab:AddToggle({
-    Name = "Users ESP (Red)",
+local usersESPToggle = visualTab:CreateToggle({
+    Title = "Users ESP (Red)",
+    Description = "Shows ESP for NPCs/Bots",
     Default = false,
     Callback = function(state)
         UsersESPEnabled = state
         if state then
             -- Enable Users ESP for NPCs/Bots
             createUsersESP()
-            OrionLib:MakeNotification({
-                Name = "Users ESP",
-                Content = "Users ESP enabled (Red)",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
+            showNotification("Users ESP", "Users ESP enabled (Red)")
         else
             -- Disable Users ESP
             removeAllESP("Users")
-            OrionLib:MakeNotification({
-                Name = "Users ESP",
-                Content = "Users ESP disabled",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
+            showNotification("Users ESP", "Users ESP disabled")
         end
     end
 })
 
 -- === MISC TAB ===
-local miscTab = Window:MakeTab({
-    Name = "Misc",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
+local miscTab = Window:CreateTab({
+    Title = "Misc",
+    Icon = "rbxassetid://4483345998"
 })
 
--- WalkSpeed TextBox
-miscTab:AddTextbox({
-    Name = "WalkSpeed",
-    Default = "16",
-    TextDisappear = true,
+-- WalkSpeed Slider
+local walkSpeedSlider = miscTab:CreateSlider({
+    Title = "WalkSpeed",
+    Description = "Adjust your walking speed",
+    Default = 16,
+    Min = 16,
+    Max = 200,
+    Rounding = 0,
     Callback = function(value)
-        local num = tonumber(value)
-        if num then
-            WalkSpeedValue = num
-            SpeedEnabled = true
-            OrionLib:MakeNotification({
-                Name = "WalkSpeed",
-                Content = "WalkSpeed set to " .. num,
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
-        end
+        WalkSpeedValue = value
+        SpeedEnabled = true
+        showNotification("WalkSpeed", "WalkSpeed set to " .. value)
     end
 })
 
--- JumpPower TextBox
-miscTab:AddTextbox({
-    Name = "JumpPower",
-    Default = "50",
-    TextDisappear = true,
+-- JumpPower Slider
+local jumpPowerSlider = miscTab:CreateSlider({
+    Title = "JumpPower",
+    Description = "Adjust your jump power",
+    Default = 50,
+    Min = 50,
+    Max = 200,
+    Rounding = 0,
     Callback = function(value)
-        local num = tonumber(value)
-        if num then
-            JumpPowerValue = num
-            SpeedEnabled = true
-            OrionLib:MakeNotification({
-                Name = "JumpPower",
-                Content = "JumpPower set to " .. num,
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
-        end
+        JumpPowerValue = value
+        SpeedEnabled = true
+        showNotification("JumpPower", "JumpPower set to " .. value)
     end
 })
 
 -- Rejoin Button
-miscTab:AddButton({
-    Name = "Rejoin",
+local rejoinButton = miscTab:CreateButton({
+    Title = "Rejoin",
+    Description = "Rejoin the current server",
     Callback = function()
         TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
-        OrionLib:MakeNotification({
-            Name = "Rejoin",
-            Content = "Attempting to rejoin the server...",
-            Image = "rbxassetid://4483345998",
-            Time = 3
-        })
+        showNotification("Rejoin", "Attempting to rejoin the server...")
     end
 })
 
 -- Server Hop Button
-miscTab:AddButton({
-    Name = "Server Hop",
+local serverHopButton = miscTab:CreateButton({
+    Title = "Server Hop",
+    Description = "Join a different server",
     Callback = function()
         local Servers = {}
         local Success, Response = pcall(function()
@@ -408,51 +352,27 @@ miscTab:AddButton({
             end
             if #Servers > 0 then
                 TeleportService:TeleportToPlaceInstance(game.PlaceId, Servers[math.random(1, #Servers)], LocalPlayer)
-                OrionLib:MakeNotification({
-                    Name = "Server Hop",
-                    Content = "Hopping to a new server...",
-                    Image = "rbxassetid://4483345998",
-                    Time = 3
-                })
+                showNotification("Server Hop", "Hopping to a new server...")
             else
-                OrionLib:MakeNotification({
-                    Name = "Server Hop Failed",
-                    Content = "No available servers found.",
-                    Image = "rbxassetid://4483345998",
-                    Time = 3
-                })
+                showNotification("Server Hop Failed", "No available servers found.")
             end
         else
-            OrionLib:MakeNotification({
-                Name = "Server Hop Failed",
-                Content = "Failed to fetch server list.",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
+            showNotification("Server Hop Failed", "Failed to fetch server list.")
         end
     end
 })
 
 -- Spin Bot Toggle
-miscTab:AddToggle({
-    Name = "Spin Bot",
+local spinBotToggle = miscTab:CreateToggle({
+    Title = "Spin Bot",
+    Description = "Makes your character spin continuously",
     Default = false,
     Callback = function(state)
         SpinBotEnabled = state
         if state then
-            OrionLib:MakeNotification({
-                Name = "Spin Bot",
-                Content = "Spin Bot enabled",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
+            showNotification("Spin Bot", "Spin Bot enabled")
         else
-            OrionLib:MakeNotification({
-                Name = "Spin Bot",
-                Content = "Spin Bot disabled",
-                Image = "rbxassetid://4483345998",
-                Time = 3
-            })
+            showNotification("Spin Bot", "Spin Bot disabled")
         end
     end
 })
@@ -482,12 +402,7 @@ RunService.RenderStepped:Connect(function()
         if currentTime - LastToolWarningTime >= ToolWarningCooldown then
             LastToolWarningTime = currentTime
             local toolList = table.concat(SchlapTools, ", ")
-            OrionLib:MakeNotification({
-                Name = "⚠️ No Schlap Tool Found",
-                Content = "Please equip one of these tools: " .. toolList,
-                Image = "rbxassetid://4483345998",
-                Time = 6
-            })
+            showNotification("⚠️ No Schlap Tool Found", "Please equip one of these tools: " .. toolList, 6)
         end
     end
     
@@ -511,12 +426,7 @@ RunService.RenderStepped:Connect(function()
                                     tool:Activate()
                                 end)
                                 if not success then
-                                    OrionLib:MakeNotification({
-                                        Name = "Tool Activation Failed",
-                                        Content = "Error with " .. toolName .. ": " .. tostring(err),
-                                        Image = "rbxassetid://4483345998",
-                                        Time = 3
-                                    })
+                                    showNotification("Tool Activation Failed", "Error with " .. toolName .. ": " .. tostring(err))
                                 end
                             end
                         else
@@ -566,12 +476,7 @@ RunService.RenderStepped:Connect(function()
                                 tool:Activate()
                             end)
                             if success then
-                                OrionLib:MakeNotification({
-                                    Name = "Aura Target",
-                                    Content = "Slapping " .. targetPlayer.Name .. " with " .. toolName,
-                                    Image = "rbxassetid://4483345998",
-                                    Time = 1
-                                })
+                                showNotification("Aura Target", "Slapping " .. targetPlayer.Name .. " with " .. toolName, 1)
                             end
                         end
                     else
@@ -651,12 +556,4 @@ LocalPlayer.CharacterAdded:Connect(function(newCharacter)
         end
         Humanoid.PlatformStand = false
     end
-    -- Reapply Invisible Mode if enabled
-    if InvisibleModeEnabled then
-        task.wait(1) -- Wait for character to fully spawn
-        enableInvisibleMode()
-    end
 end)
-
--- Initialize OrionLib
-OrionLib:Init()
